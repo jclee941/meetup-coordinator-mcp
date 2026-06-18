@@ -1,0 +1,25 @@
+{
+  "name": "meetup-coordinator-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --hot src/http-server.ts",
+    "start": "bun run src/http-server.ts",
+    "mcp:stdio": "bun run src/stdio-server.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "bun test",
+    "verify": "bun run lint && bun run typecheck && bun test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.6",
+    "@types/bun": "latest",
+    "typescript": "^5.8.0"
+  }
+}
