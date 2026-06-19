@@ -44,6 +44,20 @@ curl -i http://localhost:3000/mcp
 4. 테스트가 끝난 뒤 심사 요청합니다.
 5. 승인 후 공개 상태를 전체 공개로 전환하고, 공개 MCP 상세 URL을 공모전 접수 양식에 제출합니다.
 
+## PlayMCP Submission Fields
+
+- 대표 이미지: `assets/submission-representative-template.png`
+- MCP 이름: `meetup-coordinator-mcp`
+- MCP 식별자: `meetupCoord`
+- MCP 설명:
+  카카오톡 단체방 대화에서 약속 가능한 날짜와 장소 후보를 추출하고, 충돌이 적은 후보 정렬, 투표 문구, 확정 공지, 미응답자 확인, 정산 안내 문구를 생성하는 약속 조율 MCP입니다. 실제 카카오톡 계정에 접근하지 않고 사용자가 붙여넣은 대화 텍스트만 분석합니다.
+- 대화 예시:
+  - `단톡 대화에서 가능한 날짜 정리해줘`
+  - `이 후보들로 카톡 투표 문구 만들어줘`
+  - `참석자 기준으로 정산 안내문 써줘`
+- 인증 방식: `인증 사용하지 않음`
+- MCP Endpoint: `https://<Kakao-Cloud-domain>/mcp`
+
 ## Safety
 
 - 실제 카카오톡 계정이나 메시지에 직접 접근하지 않습니다.
