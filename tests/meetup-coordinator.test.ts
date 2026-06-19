@@ -41,6 +41,20 @@ describe("meetup coordinator domain", () => {
     expect(result.rankedOptions[0]?.score).toBeGreaterThan(result.rankedOptions[1]?.score ?? 0)
   })
 
+  test("keeps candidate order when ranking without chat signals", () => {
+    const result = rankMeetupOptions({
+      candidates: [
+        { date: "금요일", place: "강남" },
+        { date: "토요일", place: "홍대" },
+      ],
+      messages: [],
+    })
+
+    expect(result.rankedOptions[0]?.date).toBe("금요일")
+    expect(result.rankedOptions[1]?.date).toBe("토요일")
+    expect(result.recommendation).toContain("대화 신호가 없어")
+  })
+
   test("drafts a KakaoTalk poll with concise options", () => {
     const result = draftPoll({
       options: ["금요일 강남", "토요일 홍대"],

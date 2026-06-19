@@ -1,10 +1,23 @@
 import { z } from "zod"
 
-const messageListSchema = z.array(z.string().trim().min(1).max(300)).min(1).max(50)
+const messageListSchema = z
+  .array(z.string().trim().min(1).max(300))
+  .min(1)
+  .max(50)
+  .describe(
+    "Relevant pasted group chat lines only. Remove phone numbers, account numbers, and other sensitive data.",
+  )
 
 export const meetupAvailabilityInputSchema = {
-  messages: messageListSchema,
-  topic: z.string().trim().min(2).max(100),
+  messages: messageListSchema.describe(
+    "Required short excerpt of group chat lines used to extract availability signals.",
+  ),
+  topic: z
+    .string()
+    .trim()
+    .min(2)
+    .max(100)
+    .describe("Meetup topic, such as dinner plan or study meeting."),
 }
 
 export const meetupAvailabilityOutputSchema = {
@@ -19,13 +32,18 @@ export const meetupOptionRankInputSchema = {
   candidates: z
     .array(
       z.object({
-        date: z.string().trim().min(1).max(50),
-        place: z.string().trim().min(1).max(80),
+        date: z.string().trim().min(1).max(50).describe("Candidate date or day."),
+        place: z.string().trim().min(1).max(80).describe("Candidate place."),
       }),
     )
     .min(1)
-    .max(20),
-  messages: messageListSchema,
+    .max(20)
+    .describe("Date and place candidates to rank."),
+  messages: messageListSchema
+    .optional()
+    .describe(
+      "Optional chat excerpt. Do not ask for chat history if candidates are already provided.",
+    ),
 }
 
 export const meetupOptionRankOutputSchema = {
@@ -41,8 +59,12 @@ export const meetupOptionRankOutputSchema = {
 }
 
 export const meetupPollDraftInputSchema = {
-  options: z.array(z.string().trim().min(1).max(120)).min(2).max(10),
-  topic: z.string().trim().min(2).max(100),
+  options: z
+    .array(z.string().trim().min(1).max(120))
+    .min(2)
+    .max(10)
+    .describe("Poll choices already selected by the user. Chat history is not required."),
+  topic: z.string().trim().min(2).max(100).describe("Poll topic. Chat history is not required."),
 }
 
 export const meetupPollDraftOutputSchema = {
@@ -52,10 +74,15 @@ export const meetupPollDraftOutputSchema = {
 }
 
 export const meetupFinalNoticeInputSchema = {
-  date: z.string().trim().min(1).max(50),
-  place: z.string().trim().min(1).max(100),
-  time: z.string().trim().min(1).max(50),
-  topic: z.string().trim().min(2).max(100),
+  date: z.string().trim().min(1).max(50).describe("Confirmed date. Chat history is not required."),
+  place: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .describe("Confirmed place. Chat history is not required."),
+  time: z.string().trim().min(1).max(50).describe("Confirmed time. Chat history is not required."),
+  topic: z.string().trim().min(2).max(100).describe("Notice topic. Chat history is not required."),
 }
 
 export const meetupFinalNoticeOutputSchema = {
@@ -64,8 +91,14 @@ export const meetupFinalNoticeOutputSchema = {
 }
 
 export const meetupMissingPeopleInputSchema = {
-  expectedPeople: z.array(z.string().trim().min(1).max(40)).min(1).max(50),
-  messages: messageListSchema,
+  expectedPeople: z
+    .array(z.string().trim().min(1).max(40))
+    .min(1)
+    .max(50)
+    .describe("People expected to respond."),
+  messages: messageListSchema
+    .optional()
+    .describe("Optional chat excerpt. If omitted, all expected people are treated as missing."),
 }
 
 export const meetupMissingPeopleOutputSchema = {
@@ -75,9 +108,23 @@ export const meetupMissingPeopleOutputSchema = {
 }
 
 export const meetupSplitBillInputSchema = {
-  participants: z.array(z.string().trim().min(1).max(40)).min(1).max(50),
-  payer: z.string().trim().min(1).max(40),
-  totalAmount: z.number().int().positive().max(100000000),
+  participants: z
+    .array(z.string().trim().min(1).max(40))
+    .min(1)
+    .max(50)
+    .describe("Participants to split the bill across. Chat history is not required."),
+  payer: z
+    .string()
+    .trim()
+    .min(1)
+    .max(40)
+    .describe("Person who paid. Chat history is not required."),
+  totalAmount: z
+    .number()
+    .int()
+    .positive()
+    .max(100000000)
+    .describe("Total amount in KRW. Chat history is not required."),
 }
 
 export const meetupSplitBillOutputSchema = {

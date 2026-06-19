@@ -126,13 +126,16 @@ export function rankMeetupOptions(input: MeetupRankInput): MeetupRankResult {
     .sort((left, right) => right.score - left.score)
 
   const best = rankedOptions[0]
+  const hasChatSignals = input.messages.length > 0
 
   return {
     rankedOptions,
     recommendation:
       best === undefined
         ? "후보가 없어 날짜와 장소를 먼저 2개씩 받아야 합니다."
-        : `${best.date} ${best.place}가 현재 대화 기준으로 가장 충돌이 적습니다.`,
+        : hasChatSignals
+          ? `${best.date} ${best.place}가 현재 대화 기준으로 가장 충돌이 적습니다.`
+          : "대화 신호가 없어 입력된 후보 순서를 유지했습니다. 후보가 정해졌다면 바로 투표 문구를 만들 수 있습니다.",
   }
 }
 

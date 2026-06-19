@@ -56,6 +56,15 @@ describe("HTTP MCP transport", () => {
       expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_final_notice"))
       expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_missing_people"))
       expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_split_bill_message"))
+      expect(findTool(parsed.result.tools, "meetup_poll_draft")?.description).toContain(
+        "does not require chat history",
+      )
+      expect(findTool(parsed.result.tools, "meetup_final_notice")?.description).toContain(
+        "does not require chat history",
+      )
+      expect(findTool(parsed.result.tools, "meetup_split_bill_message")?.description).toContain(
+        "does not require chat history",
+      )
       expect(parsed.result.tools).toHaveLength(6)
     } finally {
       server.stop(true)

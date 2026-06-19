@@ -1,0 +1,79 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Meetup Coordinator MCP PlayMCP registration image</title>
+  <desc id="desc">Square PlayMCP registration image for Meetup Coordinator MCP.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F4EC"/>
+      <stop offset="0.5" stop-color="#EEF6F3"/>
+      <stop offset="1" stop-color="#F8ECE8"/>
+    </linearGradient>
+    <linearGradient id="card" x1="188" y1="392" x2="836" y2="888" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F7F5"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="30" stdDeviation="28" flood-color="#24302D" flood-opacity="0.16"/>
+    </filter>
+    <filter id="chipShadow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="15" flood-color="#24302D" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .sans { font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif; }
+      .mono { font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+      .title { font-size: 76px; font-weight: 900; letter-spacing: 0; fill: #18211F; }
+      .body { font-size: 30px; font-weight: 750; letter-spacing: 0; fill: #3A4844; }
+      .label { font-size: 26px; font-weight: 800; letter-spacing: 0; fill: #32413D; }
+      .muted { font-size: 22px; font-weight: 700; letter-spacing: 0; fill: #63716D; }
+      .inverse { fill: #F7F4EC; }
+      .accent { fill: #17806D; }
+    </style>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <path d="M0 782C122 720 238 724 368 766C509 811 599 878 760 826C877 788 950 732 1024 760V1024H0V782Z" fill="#D95F48" fill-opacity="0.09"/>
+  <path d="M560 0C617 86 681 146 781 174C872 199 946 177 1024 139V0H560Z" fill="#17806D" fill-opacity="0.11"/>
+
+  <g transform="translate(92 86)">
+    <rect x="0" y="0" width="340" height="58" rx="29" fill="#FFFFFF" fill-opacity="0.78" stroke="#D9E1DD"/>
+    <circle cx="34" cy="29" r="8" fill="#17806D"/>
+    <text class="sans muted" x="56" y="37">PlayMCP 등록 이미지</text>
+
+    <text class="sans title" x="0" y="150">Meetup</text>
+    <text class="sans title" x="0" y="230">Coordinator</text>
+    <text class="mono" x="4" y="288" font-size="31" font-weight="800" letter-spacing="0" fill="#6A5750">MCP ID: meetupCoord</text>
+
+  </g>
+
+  <g transform="translate(188 410)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="648" height="364" rx="34" fill="url(#card)" stroke="#FFFFFF" stroke-width="2"/>
+    <rect x="42" y="42" width="564" height="280" rx="25" fill="#F8FAF8" stroke="#DDE6E2"/>
+
+    <g transform="translate(78 76)" filter="url(#chipShadow)">
+      <rect x="0" y="0" width="230" height="76" rx="22" fill="#24302D"/>
+      <text class="sans label inverse" x="34" y="47">일정 추출</text>
+    </g>
+    <g transform="translate(340 76)" filter="url(#chipShadow)">
+      <rect x="0" y="0" width="230" height="76" rx="22" fill="#FFFFFF"/>
+      <text class="sans label" x="34" y="47">후보 정렬</text>
+    </g>
+    <g transform="translate(78 190)" filter="url(#chipShadow)">
+      <rect x="0" y="0" width="230" height="76" rx="22" fill="#FFFFFF"/>
+      <text class="sans label" x="34" y="47">투표 초안</text>
+    </g>
+    <g transform="translate(340 190)" filter="url(#chipShadow)">
+      <rect x="0" y="0" width="230" height="76" rx="22" fill="#FFFFFF"/>
+      <text class="sans label" x="34" y="47">정산 안내</text>
+    </g>
+
+    <g transform="translate(494 252)">
+      <circle cx="52" cy="52" r="52" fill="#D95F48" fill-opacity="0.14"/>
+      <circle cx="52" cy="52" r="33" fill="#D95F48"/>
+      <path d="M38 52H66M52 38V66" stroke="#FFF8F5" stroke-width="7" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g transform="translate(92 846)">
+    <rect x="0" y="0" width="244" height="44" rx="22" fill="#E4EFEA"/>
+    <text class="mono" x="28" y="30" font-size="18" font-weight="800" fill="#17806D">meetup_* tools</text>
+  </g>
+</svg>
