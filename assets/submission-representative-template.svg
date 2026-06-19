@@ -1,0 +1,109 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Meetup Coordinator MCP submission representative image template</title>
+  <desc id="desc">A 1200 by 630 representative image template for submitting Meetup Coordinator MCP.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F4EC"/>
+      <stop offset="0.46" stop-color="#EEF6F3"/>
+      <stop offset="1" stop-color="#F8ECE8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="690" y1="110" x2="1114" y2="534" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F7F5"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#23312E" flood-opacity="0.14"/>
+    </filter>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#24302D" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .sans { font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif; }
+      .mono { font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+      .label { font-size: 22px; font-weight: 700; letter-spacing: 0; fill: #32413D; }
+      .caption { font-size: 19px; font-weight: 600; letter-spacing: 0; fill: #55635F; }
+      .small { font-size: 16px; font-weight: 700; letter-spacing: 0; fill: #64716D; }
+      .body { font-size: 31px; font-weight: 800; letter-spacing: 0; fill: #24302D; }
+      .muted { fill: #6C7774; }
+      .inverse { fill: #F7F4EC; }
+      .inverseMuted { fill: #C7D7D1; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="630" rx="0" fill="url(#bg)"/>
+  <path d="M0 488C132 441 225 456 338 487C451 518 560 565 703 528C846 491 920 410 1044 419C1122 425 1168 457 1200 486V630H0V488Z" fill="#D95F48" fill-opacity="0.08"/>
+  <path d="M791 0C838 53 884 96 966 117C1041 136 1110 125 1200 91V0H791Z" fill="#17806D" fill-opacity="0.10"/>
+
+  <g transform="translate(70 72)">
+    <!-- EDITABLE: replace this badge text with the contest, track, or submission category. -->
+    <rect x="0" y="0" width="318" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.78" stroke="#D9E1DD"/>
+    <circle cx="28" cy="24" r="7" fill="#17806D"/>
+    <text class="sans small" x="48" y="31">PlayMCP 공개 제출용 대표 이미지</text>
+
+    <!-- EDITABLE: replace project title if the service name changes. -->
+    <text class="sans" x="0" y="132" font-size="66" font-weight="900" letter-spacing="0" fill="#18211F">Meetup</text>
+    <text class="sans" x="0" y="202" font-size="66" font-weight="900" letter-spacing="0" fill="#18211F">Coordinator MCP</text>
+
+    <!-- EDITABLE: replace this two-line description with the submitted service summary. -->
+    <text class="sans" x="2" y="258" font-size="28" font-weight="700" letter-spacing="0" fill="#3A4844">카카오톡 단체방 대화에서 약속 후보와</text>
+    <text class="sans" x="2" y="296" font-size="28" font-weight="700" letter-spacing="0" fill="#3A4844">투표 문구를 정리하고, 확정 공지와</text>
+    <text class="sans" x="2" y="334" font-size="28" font-weight="700" letter-spacing="0" fill="#3A4844">정산 안내까지 만듭니다.</text>
+
+    <g transform="translate(0 374)">
+      <!-- EDITABLE: feature chips. Keep each label under 9 Korean characters for safe spacing. -->
+      <rect x="0" y="0" width="128" height="44" rx="22" fill="#24302D"/>
+      <text class="sans small inverse" x="26" y="29">일정 추출</text>
+      <rect x="142" y="0" width="128" height="44" rx="22" fill="#FFFFFF" stroke="#D9E1DD"/>
+      <text class="sans small" x="168" y="29">후보 정렬</text>
+      <rect x="284" y="0" width="128" height="44" rx="22" fill="#FFFFFF" stroke="#D9E1DD"/>
+      <text class="sans small" x="310" y="29">투표 초안</text>
+      <rect x="426" y="0" width="128" height="44" rx="22" fill="#FFFFFF" stroke="#D9E1DD"/>
+      <text class="sans small" x="452" y="29">정산 안내</text>
+    </g>
+
+    <!-- EDITABLE: endpoint, submitted URL, or MCP identifier can go here. -->
+    <text class="mono" x="2" y="466" font-size="19" font-weight="700" letter-spacing="0" fill="#6A5750">MCP ID: meetupCoord · /mcp · Bun</text>
+  </g>
+
+  <g transform="translate(640 70)">
+    <rect x="0" y="0" width="490" height="490" rx="30" fill="url(#panel)" stroke="#FFFFFF" stroke-width="2" filter="url(#softShadow)"/>
+    <rect x="26" y="26" width="438" height="438" rx="24" fill="#F8FAF8" stroke="#DDE6E2"/>
+
+    <g transform="translate(58 58)" filter="url(#cardShadow)">
+      <rect x="0" y="0" width="238" height="82" rx="18" fill="#FFFFFF"/>
+      <text class="sans caption" x="22" y="34">토요일 가능?</text>
+      <text class="sans small muted" x="22" y="61">민지, 준호 가능 · 소연 미정</text>
+    </g>
+
+    <g transform="translate(159 156)" filter="url(#cardShadow)">
+      <rect x="0" y="0" width="272" height="88" rx="18" fill="#24302D"/>
+      <text class="sans caption inverse" x="24" y="36">투표 선택지 생성</text>
+      <text class="sans small inverseMuted" x="24" y="64">6/22 저녁 · 홍대 · 강남</text>
+    </g>
+
+    <g transform="translate(58 270)" filter="url(#cardShadow)">
+      <rect x="0" y="0" width="260" height="92" rx="18" fill="#FFFFFF"/>
+      <text class="sans caption" x="22" y="36">확정 공지</text>
+      <text class="sans small muted" x="22" y="65">장소, 시간, 준비물 체크</text>
+    </g>
+
+    <g transform="translate(338 62)">
+      <rect x="0" y="0" width="58" height="58" rx="16" fill="#17806D"/>
+      <path d="M18 20H40M18 29H36M18 38H31" stroke="#F7F4EC" stroke-width="4" stroke-linecap="round"/>
+    </g>
+
+    <g transform="translate(354 324)">
+      <circle cx="39" cy="39" r="39" fill="#D95F48" fill-opacity="0.14"/>
+      <circle cx="39" cy="39" r="25" fill="#D95F48"/>
+      <path d="M28 39H50M39 28V50" stroke="#FFF8F5" stroke-width="5" stroke-linecap="round"/>
+    </g>
+
+    <path d="M178 136C210 136 224 142 244 160" stroke="#17806D" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 12"/>
+    <path d="M287 252C270 271 249 282 219 285" stroke="#D95F48" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 12"/>
+
+    <g transform="translate(58 402)">
+      <rect x="0" y="0" width="176" height="34" rx="17" fill="#E4EFEA"/>
+      <text class="mono" x="22" y="23" font-size="15" font-weight="800" fill="#17806D">meetup_* tools</text>
+    </g>
+  </g>
+</svg>
