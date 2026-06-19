@@ -5,7 +5,7 @@ Kakao Cloud의 `Git 소스 빌드` 화면에서 다음 값을 사용합니다.
 | 항목 | 값 |
 | --- | --- |
 | MCP 서버 이름 | `meetup-coordinator` |
-| 설명 | `카톡 단체방 약속 조율을 위해 날짜 후보, 투표 문구, 확정 공지, 미응답자, 정산 문구를 정리하는 PlayMCP downstream MCP 서버` |
+| 설명 | `붙여넣은 단체방 대화 텍스트에서 날짜 후보, 투표 문구, 확정 공지, 미응답자, 정산 문구를 정리하는 PlayMCP downstream MCP 서버` |
 | Git URL | `https://github.com/jclee941/meetup-coordinator-mcp.git` |
 | 브랜치/ref | `master` |
 | Dockerfile 경로 | `Dockerfile` |
@@ -33,6 +33,17 @@ PlayMCP 개발자 콘솔에 등록할 endpoint:
 ```text
 https://<Kakao-Cloud-domain>/mcp
 ```
+
+## PlayMCP 심사 기준 확인
+
+- MCP protocol: `2025-03-26`부터 `2025-11-25`까지 SDK 지원 범위 안에서 협상
+- Transport: Streamable HTTP only
+- Server mode: 요청마다 새 MCP 서버/transport를 생성하는 stateless HTTP 처리
+- Tool count: 6개
+- Tool names: `meetup_*` 형식, `kakao` 문자열 없음
+- Tool metadata: `description`, `inputSchema`, `outputSchema`, `annotations` 제공
+- Tool result: JSON 전체를 text content에 반복하지 않고, 짧은 markdown text와 structured output만 반환
+- 인증 방식: 인증 사용하지 않음
 
 ## PlayMCP 공모전 등록 순서
 

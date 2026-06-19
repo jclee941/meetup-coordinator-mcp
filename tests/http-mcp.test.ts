@@ -7,9 +7,18 @@ import { createHttpApp } from "../src/http-server.js"
 
 const toolSchema = z
   .object({
+    annotations: z.object({
+      destructiveHint: z.boolean(),
+      idempotentHint: z.boolean(),
+      openWorldHint: z.boolean(),
+      readOnlyHint: z.boolean(),
+      title: z.string(),
+    }),
+    description: z.string(),
     inputSchema: z.object({}).passthrough(),
     name: z.string(),
     outputSchema: z.object({}).passthrough().optional(),
+    title: z.string(),
   })
   .passthrough()
 
@@ -41,14 +50,12 @@ describe("HTTP MCP transport", () => {
       })
       const parsed = toolsListResponseSchema.parse(tools)
 
-      expect(
-        findTool(parsed.result.tools, "meetup_availability_extract")?.outputSchema,
-      ).toBeDefined()
-      expect(findTool(parsed.result.tools, "meetup_option_rank")?.outputSchema).toBeDefined()
-      expect(findTool(parsed.result.tools, "meetup_poll_draft")?.outputSchema).toBeDefined()
-      expect(findTool(parsed.result.tools, "meetup_final_notice")?.outputSchema).toBeDefined()
-      expect(findTool(parsed.result.tools, "meetup_missing_people")?.outputSchema).toBeDefined()
-      expect(findTool(parsed.result.tools, "meetup_split_bill_message")?.outputSchema).toBeDefined()
+      expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_availability_extract"))
+      expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_option_rank"))
+      expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_poll_draft"))
+      expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_final_notice"))
+      expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_missing_people"))
+      expectPlayMcpMetadata(findTool(parsed.result.tools, "meetup_split_bill_message"))
       expect(parsed.result.tools).toHaveLength(6)
     } finally {
       server.stop(true)
@@ -86,6 +93,25 @@ function findTool(
   name: string,
 ): z.infer<typeof toolSchema> | undefined {
   return tools.find((tool) => tool.name === name)
+}
+
+function expectPlayMcpMetadata(tool: z.infer<typeof toolSchema> | undefined): void {
+  expect(tool).toBeDefined()
+
+  if (tool === undefined) {
+    return
+  }
+
+  expect(tool.outputSchema).toBeDefined()
+  expect(tool.description).toContain("Meetup Coordinator MCP(밋업 코디네이터 MCP)")
+  expect(tool.annotations).toEqual({
+    title: tool.title,
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  })
+  expect(tool.name.toLowerCase()).not.toContain("kakao")
 }
 
 async function initializeMcpSession(): Promise<void> {
