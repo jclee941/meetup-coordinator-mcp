@@ -5,22 +5,20 @@ import { z } from "zod"
 import { loadConfig } from "../src/config.js"
 import { createHttpApp } from "../src/http-server.js"
 
-const toolSchema = z
-  .object({
-    annotations: z.object({
-      destructiveHint: z.boolean(),
-      idempotentHint: z.boolean(),
-      openWorldHint: z.boolean(),
-      readOnlyHint: z.boolean(),
-      title: z.string(),
-    }),
-    description: z.string(),
-    inputSchema: z.object({}).passthrough(),
-    name: z.string(),
-    outputSchema: z.object({}).passthrough().optional(),
+const toolSchema = z.looseObject({
+  annotations: z.object({
+    destructiveHint: z.boolean(),
+    idempotentHint: z.boolean(),
+    openWorldHint: z.boolean(),
+    readOnlyHint: z.boolean(),
     title: z.string(),
-  })
-  .passthrough()
+  }),
+  description: z.string(),
+  inputSchema: z.looseObject({}),
+  name: z.string(),
+  outputSchema: z.looseObject({}).optional(),
+  title: z.string(),
+})
 
 const toolsListResponseSchema = z.object({
   result: z.object({
@@ -112,6 +110,7 @@ function expectPlayMcpMetadata(tool: z.infer<typeof toolSchema> | undefined): vo
   }
 
   expect(tool.outputSchema).toBeDefined()
+  expect(tool.description).toContain("meetup-coordinator-mcp")
   expect(tool.description).toContain("Meetup Coordinator MCP(밋업 코디네이터 MCP)")
   expect(tool.annotations).toEqual({
     title: tool.title,
