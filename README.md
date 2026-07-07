@@ -1,361 +1,261 @@
-# Meetup Coordinator MCP
+# meetup-coordinator-mcp
 
-![Bun](https://img.shields.io/badge/Bun-1.3.10-f9f1e1?logo=bun)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?logo=typescript)
-![MCP SDK](https://img.shields.io/badge/MCP%20SDK-1.29.0-1f6feb)
-![Status](https://img.shields.io/badge/PlayMCP-Active-2ea44f)
-![Private](https://img.shields.io/badge/package-private-lightgrey)
+Model Context Protocol(MCP) 서버로, 밋업(Meetup) 일정·장소·참가자 정보를 AI 에이전트가 도구로 호출할 수 있게 해 주는 경량 코디네이터입니다. 동일한 코어 로직을 HTTP 트랜스포트와 stdio 트랜스포트 양쪽으로 노출하므로, 원격 에이전트와 로컬 CLI 에이전트가 같은 도구 집합을 공유합니다.
 
-PlayMCP 에서 호출하는 downstream MCP 서버입니다. 한국어로 약속(만남) 일정을
-조율할 때 자주 필요한 6가지 작업을 도구로 제공합니다. 대화 분석이 필요한
-기능은 사용자가 붙여넣은 일부 단체방 대화 텍스트만 사용하고, 투표·공지·정산
-기능은 대화 내용 없이도 사용할 수 있습니다.
+## 한 줄 요약
 
-A downstream MCP server invoked by PlayMCP. It exposes six tools for
-coordinating Korean-language meetups (extract availability, rank options,
-draft polls, write final notices, list missing respondents, draft split-bill
-messages).
+밋업 코디네이션 작업을 위한 MCP 서버 — HTTP와 stdio 양쪽 트랜스포트를 지원하며, Zod 스키마로 입력·출력을 검증합니다.
 
----
+## 빠른 상태
 
-## 한눈에 보기 / At a Glance
-
-| 항목 / Item | 값 / Value |
+| 항목 | 값 |
 | --- | --- |
-| 런타임 / Runtime | Bun 1.3.10 (TypeScript, ESM) |
-| MCP SDK | `@modelcontextprotocol/sdk` 1.29.0 |
-| 전송 / Transport | Streamable HTTP (`/mcp`), 무상태 / stateless |
-| 보조 전송 / Alt transport | stdio (`bun run mcp:stdio`) |
-| 도구 수 / Tools | 6 (ASCII 영문자 + `_` 만, `kakao` 부분 문자열 미포함) |
-| 헬스 체크 / Health | `GET /health` |
-| 컨테이너 포트 / Container port | `3000` |
-| 배포 / Deployment | Kakao Cloud Git Source Build → PlayMCP endpoint |
-| 상태 / Status | Active |
-| 라이선스 / License | Private (see `LICENSE`) |
+| 패키지 이름 | `meetup-coordinator-mcp` |
+| 버전 | `0.1.0` |
+| 비공개 | `private: true` |
+| 런타임 | Bun 1.3.x (Alpine) |
+| 언어 | TypeScript (`module`) |
+| 주요 의존성 | `@modelcontextprotocol/sdk` 1.29.0, `zod` 4.4.3 |
+| 트랜스포트 | HTTP(`src/http-server.ts`), stdio(`src/stdio-server.ts`) |
+| 기본 포트 | `3000` (Dockerfile의 `ENV PORT`) |
+| 컨테이너 | `oven/bun:1.3.10-alpine` 멀티스테이지 |
+| 테스트 | `bun test` |
+| 린트/포맷 | Biome |
+| 타입 검사 | `tsc --noEmit` |
 
-## 빠른 흐름 / Quick Flow
+## 주요 흐름 요약
 
-PlayMCP 가 보내는 도구 호출을 이 서버가 어떻게 처리하는지 한 줄 흐름으로
-요약합니다. / How a PlayMCP tool call flows through this server:
+| 시점 | 동작 |
+| --- | --- |
+| 부팅 | `src/config.ts` → 환경 변수 로드 → MCP 서버 인스턴스화 |
+| 노출 | HTTP는 `PORT`(기본 `3000`)에서 SSE/Streamable, stdio는 표준 입출력 |
+| 호출 | 에이전트가 도구 호출 → `meetup-coordinator.ts` 코디네이터 동작 |
+| 검증 | `meetup-schemas.ts`의 Zod 스키마로 입력·출력 검증 |
+| 검증 일괄 | `bun run verify` (lint + typecheck + test) |
 
-1. **진입 / Entry** — `src/http-server.ts` 가 `POST /mcp` 요청을 받습니다.
-2. **전송 / Transport** — 요청마다 새 `StreamableHTTPServerTransport` 와 `McpServer` 인스턴스를 만듭니다 (무상태).
-3. **스키마 검증 / Validate** — `src/mcp/meetup-schemas.ts` 의 `zod` 스키마로 입력을 검증합니다.
-4. **도구 실행 / Execute** — `src/mcp/meetup-coordinator.ts` 의 6개 도구 중 하나가 호출됩니다.
-5. **응답 / Respond** — 간결한 한국어 마크다운 텍스트와 최소 구조화 JSON 을 반환합니다.
-6. **헬스 체크 / Probe** — Kakao Cloud 컨테이너 헬스 체크는 `GET /health` 를 사용합니다.
+진입점은 운영자가 `bun run dev`, `bun run start`, `bun run mcp:stdio` 중 하나를 선택하거나 컨테이너의 `CMD ["bun", "run", "start"]`를 사용하는 것입니다.
 
----
+## 패키지 구성
 
-## 목차 / Contents
+| 경로 | 역할 |
+| --- | --- |
+| `src/config.ts` | 환경 변수 기반 설정 로딩 |
+| `src/http-server.ts` | HTTP 트랜스포트 엔트리포인트 (개발 핫리로드 포함) |
+| `src/stdio-server.ts` | stdio 트랜스포트 엔트리포인트 |
+| `src/mcp/server.ts` | MCP 서버 팩토리 / 도구 등록 |
+| `src/mcp/meetup-coordinator.ts` | 밋업 코디네이션 도메인 로직 |
+| `src/mcp/meetup-schemas.ts` | Zod 스키마(요청·응답·도메인 모델) |
+| `tests/` | `bun test` 기반 단위 테스트 |
+| `docs/kakao-cloud-git-source-build.md` | Kakao Cloud Git 소스 빌드 배포 가이드 |
+| `assets/` | PlayMCP 등록·제출용 이미지 자산(SVG/PNG) |
+| `Dockerfile` | Bun Alpine 멀티스테이지 빌드 |
+| `biome.json` | Biome 린트/포맷 규칙 |
 
-1. [프로젝트 개요 / Overview](#project-overview)
-2. [주요 기능 / Features](#features)
-3. [패키지 구성 / Package Contents](#package-contents)
-4. [아키텍처 / Architecture](#architecture)
-5. [빠른 시작 / Quickstart](#quickstart)
-6. [환경 설정 / Configuration](#configuration)
-7. [명령어 / Commands Reference](#commands-reference)
-8. [로컬 개발 / Local Development](#local-development)
-9. [테스트 / Testing](#testing)
-10. [PlayMCP 배포 및 제출 / PlayMCP Deployment & Submission](#playmcp-deployment--submission)
-11. [유지보수 / Maintainers](#maintainers)
-12. [라이선스 / License](#license)
-13. [추가 문서 / Further Documentation](#further-documentation)
+## 먼저 읽을 파일
 
----
+1. `src/mcp/server.ts` — MCP 서버 등록 구조와 노출 도구 목록.
+2. `src/mcp/meetup-coordinator.ts` — 도메인 로직과 호출 흐름.
+3. `src/mcp/meetup-schemas.ts` — 에이전트가 받는 입력·응답 스키마.
+4. `src/http-server.ts` — 원격 트랜스포트 진입점.
+5. `src/stdio-server.ts` — 로컬/파이프라인용 진입점.
+6. `src/config.ts` — 환경 변수 키와 기본값.
 
-## Project Overview
+## 엔트리포인트와 API
 
-한국어 단체방 대화에서 반복되는 약속 조율 작업을 자동화하기 위한 downstream
-MCP 서버입니다. 본 저장소는 PlayMCP 가 호출하는 외부 MCP 서버이며,
-호출자가 PlayMCP 의 AI 채팅 클라이언트인지 로컬 MCP 클라이언트인지에 따라
-HTTP 전송(Streamable HTTP) 또는 stdio 전송으로 진입합니다.
-
-This repository hosts a **downstream** MCP server that PlayMCP calls. Tools
-that need conversational evidence accept a user-provided chat snippet as
-optional input; the rest work without any chat context.
-
-### 왜 유용한가 / Why it is useful
-
-- 한국어 약속 조율의 다섯 단계 (후보 수집 → 정렬 → 투표 → 확정 공지 →
-  정산) 를 한 서버에서 일관된 도구 묶음으로 제공합니다.
-- 모든 도구가 `inputSchema` 와 `outputSchema` 를 함께 노출해 PlayMCP
-  미리보기에서 호출 형태를 그대로 검증할 수 있습니다.
-- 도구명은 ASCII 영문자와 `_` 만 사용하므로 PlayMCP 의 도구함 인덱싱
-  정책과 충돌하지 않습니다.
-- 무상태 HTTP 전송으로 동작해 단일 컨테이너 인스턴스로도 수평 확장이
-  단순합니다.
-
----
-
-## Features
-
-6개의 도구를 제공합니다. 각 도구는 한국어 약속 조율에서 한 가지 작업을
-담당합니다.
-
-| 도구 / Tool | 입력 / Input | 출력 / Output | 대화 맥락 / Chat context |
+| 엔트리포인트 | 트랜스포트 | 기본 URL/스트림 | 사용 스크립트 |
 | --- | --- | --- | --- |
-| `meetup_availability_extract` | 단체방 메시지 스니펫 | 가능한 날짜, 불가능한 날짜, 장소 신호 | 필요 / Required |
-| `meetup_option_rank` | 날짜/장소 후보 목록 | 정렬된 후보 + 근거 | 선택 / Optional |
-| `meetup_poll_draft` | 주제, 선택지 | 투표 문구 | 불필요 / Not needed |
-| `meetup_final_notice` | 확정된 날짜·시간·장소 | 공지문 + 체크리스트 | 불필요 / Not needed |
-| `meetup_missing_people` | 참석자 목록, 응답 상태 | 미응답자/애매 응답자 정리 | 선택 / Optional |
-| `meetup_split_bill_message` | 총액, 참석자 | 정산 안내 문구 | 불필요 / Not needed |
+| `src/http-server.ts` | HTTP(원격 에이전트) | `http://0.0.0.0:${PORT}` (기본 `3000`) | `bun run dev`, `bun run start` |
+| `src/stdio-server.ts` | stdio(로컬 에이전트) | 표준 입출력 | `bun run mcp:stdio` |
 
-각 도구는 `name`, `description`, `inputSchema`, `outputSchema`, 그리고
-전체 `annotations` 를 노출하며, 결과는 간결한 한국어 마크다운 본문과 최소
-구조화 페이로드로 구성됩니다.
+도구 목록과 요청·응답 스키마는 `src/mcp/meetup-schemas.ts`에서 단일 출처로 관리됩니다. 호출 시 MCP SDK가 해당 Zod 스키마로 입력을 검증하고 도구별 출력을 직렬화합니다.
 
----
+## 빠른 시작
 
-## Package Contents
-
-저장소 최상위 구조입니다. 디렉터리는 실제 트리를 그대로 반영합니다.
-
-| 경로 / Path | 역할 / Role |
-| --- | --- |
-| `src/http-server.ts` | HTTP 전송(Streamable HTTP) 진입점. PlayMCP 프로덕션 진입점. |
-| `src/stdio-server.ts` | stdio 전송 진입점. 로컬 MCP 클라이언트용. |
-| `src/mcp/server.ts` | MCP 서버 생성, 도구 등록, 라우팅. |
-| `src/mcp/meetup-coordinator.ts` | 6개 도구 구현체. |
-| `src/mcp/meetup-schemas.ts` | 입력/출력용 `zod` 스키마. |
-| `src/config.ts` | 환경 변수 로딩 및 검증. |
-| `tests/config.test.ts` | 환경 변수 파싱 테스트. |
-| `tests/http-mcp.test.ts` | HTTP 전송 통합 테스트. |
-| `tests/meetup-coordinator.test.ts` | 6개 도구 동작 테스트. |
-| `docs/kakao-cloud-git-source-build.md` | Kakao Cloud Git Source Build 절차 가이드. |
-| `assets/playmcp-registration-image.{svg,png}` | PlayMCP 등록 화면 참고 이미지. |
-| `assets/submission-representative-template.{svg,png}` | 공모전 제출 양식 참고 템플릿. |
-| `Dockerfile` | `oven/bun:1.3.10-alpine` 기반 이미지. |
-| `biome.json`, `tsconfig.json`, `bun.lock`, `package.json` | 빌드/린트/타입 설정. |
-| `LICENSE`, `CONTRIBUTING.md` | 라이선스, 기여 가이드. |
-
----
-
-## Architecture
-
-### 모듈 구성 / Modules
-
-| 계층 / Layer | 파일 / File | 책임 / Responsibility |
-| --- | --- | --- |
-| Entry (HTTP) | `src/http-server.ts` | Bun HTTP 서버 부트스트랩, `/mcp` 와 `/health` 라우팅. |
-| Entry (stdio) | `src/stdio-server.ts` | stdin/stdout 기반 MCP 서버 부트스트랩. |
-| Transport | `@modelcontextprotocol/sdk` | Streamable HTTP, stdio. |
-| Server core | `src/mcp/server.ts` | `McpServer` 인스턴스화, 6개 도구 등록. |
-| Tools | `src/mcp/meetup-coordinator.ts` | 6개 도구 핸들러 구현. |
-| Schemas | `src/mcp/meetup-schemas.ts` | `zod` 입력/출력 스키마. |
-| Config | `src/config.ts` | `PORT` 등 환경 변수 파싱. |
-
-### 요청 흐름 / Request Flow (HTTP)
-
-1. 클라이언트(PlayMCP 등)가 `POST /mcp` 로 JSON-RPC 요청을 전송합니다.
-2. `src/http-server.ts` 가 각 요청에 대해 새 `StreamableHTTPServerTransport`
-   와 `McpServer` 인스턴스를 만듭니다.
-3. 클라이언트가 `initialize` 를 보내면 세션이 열리고, 이후 `tools/list`
-   또는 `tools/call` 을 보냅니다.
-4. `tools/call` 은 `src/mcp/meetup-coordinator.ts` 의 핸들러로 라우팅됩니다.
-5. 핸들러는 `src/mcp/meetup-schemas.ts` 의 `zod` 스키마로 입력을 검증합니다.
-6. 검증된 입력을 처리해 한국어 마크다운 텍스트 + 구조화 JSON 을 반환합니다.
-7. 요청이 끝나면 서버/전송 인스턴스는 폐기됩니다 (무상태).
-8. 운영 환경에서 `GET /health` 는 컨테이너 헬스 체크에 사용됩니다.
-
-### stdio 흐름 / stdio Flow
-
-1. 로컬 MCP 클라이언트가 `bun run mcp:stdio` 로 서버 프로세스를 실행합니다.
-2. stdin/stdout 으로 JSON-RPC 가 교환되며 `src/mcp/server.ts` 의 핸들러가
-   동일하게 호출됩니다.
-3. 종료 시 stdin EOF 또는 클라이언트 측 종료 시그널로 프로세스가 정리됩니다.
-
----
-
-## Quickstart
-
-선행 조건 / Prerequisites:
-
-- Bun 1.3.10 이상 (Bun 설치 후 `bun --version` 으로 확인)
-- (선택) 컨테이너로 실행할 경우 Docker
-
-### 1. 의존성 설치 / Install
+사전 준비: Bun 1.3 이상.
 
 ```bash
+# 1) 의존성 설치
 bun install
-```
 
-### 2. 검증 / Verify
+# 2) 개발 모드 (HTTP, 핫리로드)
+bun run dev
 
-린트, 타입 체크, 테스트를 한 번에 실행합니다.
+# 3) 프로덕션 모드 (HTTP)
+bun run start
 
-```bash
+# 4) stdio 트랜스포트로 실행
+bun run mcp:stdio
+
+# 5) 일괄 검증 (린트 + 타입체크 + 테스트)
 bun run verify
 ```
 
-### 3. 로컬 HTTP 서버 실행 / Run HTTP Server
+HTTP 모드는 별도의 환경 변수가 없으면 `PORT=3000`으로 동작합니다. 포트를 바꾸려면 `PORT=<포트>`로 실행 컨텍스트에서 주입하세요.
+
+### Docker
 
 ```bash
-bun run start
-# 또는 핫 리로드 모드
-bun run dev
+docker build -t meetup-coordinator-mcp .
+docker run --rm -p 3000:3000 meetup-coordinator-mcp
 ```
 
-### 4. 동작 확인 / Smoke Test
+컨테이너는 `oven/bun:1.3.10-alpine` 기반이며, 멀티스테이지로 `node_modules`만 프로덕션 스테이지에 복사합니다.
+
+## 스크립트 레퍼런스
+
+| 명령어 | 동작 |
+| --- | --- |
+| `bun run dev` | `bun run --hot src/http-server.ts` (HTTP + 핫리로드) |
+| `bun run start` | `bun run src/http-server.ts` (HTTP 프로덕션) |
+| `bun run mcp:stdio` | `bun run src/stdio-server.ts` |
+| `bun run typecheck` | `tsc --noEmit` |
+| `bun run lint` | `biome check .` |
+| `bun run format` | `biome check --write .` |
+| `bun test` | Bun 테스트 러너 |
+| `bun run verify` | `lint && typecheck && test` |
+
+## 로컬 개발
+
+- 런타임은 Bun 전용입니다. Node로 직접 실행하지 마세요(`@types/bun`만 설치돼 있습니다).
+- 코드 스타일은 Biome가 단일 출처입니다. 커밋 전 `bun run format`을 권장합니다.
+- 변경 후에는 `bun run verify`로 린트·타입·테스트를 한 번에 통과시키세요.
+- MCP SDK 버전은 `@modelcontextprotocol/sdk` 1.29.0에 고정되어 있습니다. 호환성 확인 없이 메이저 버전을 올리지 마세요.
+
+## 테스트
+
+- 위치: `tests/` 디렉터리.
+- 실행: `bun test`.
+- 일괄 게이트: `bun run verify`.
+- 도메인 로직(`meetup-coordinator.test.ts`), 설정(`config.test.ts`), HTTP MCP 통합(`http-mcp.test.ts`)을 다룹니다.
+
+## 운영 관측 포인트
+
+| 항목 | 위치 | 비고 |
+| --- | --- | --- |
+| HTTP 리스너 | `src/http-server.ts` | 포트는 `PORT` 환경 변수, 기본 `3000` |
+| stdio 핸들 | `src/stdio-server.ts` | 부모 프로세스의 stdin/stdout |
+| 설정 | `src/config.ts` | 부팅 시 1회 로드 |
+| 스키마 | `src/mcp/meetup-schemas.ts` | Zod로 호출 검증 |
+
+## 자산과 배포 자료
+
+| 자산 | 용도 |
+| --- | --- |
+| `assets/playmcp-registration-image.png` / `.svg` | PlayMCP 등록용 시각 자료 |
+| `assets/submission-representative-template.png` / `.svg` | 제출 대표 템플릿 |
+| `docs/kakao-cloud-git-source-build.md` | Kakao Cloud Git 소스 빌드 배포 절차 |
+
+## 기여 가이드
+
+1. 이슈 또는 작업 항목 식별 → 작업 브랜치 생성.
+2. `bun install` 후 `bun run verify`가 통과하는 상태에서 시작.
+3. 도메인 로직 변경 시 `tests/meetup-coordinator.test.ts` 갱신 필수.
+4. 스키마 변경 시 `src/mcp/meetup-schemas.ts`와 연관 테스트를 동시에 수정.
+5. PR 전 `bun run format && bun run verify` 실행.
+
+자세한 정책은 `CONTRIBUTING.md`를 참고하세요.
+
+## 유지보수와 문의
+
+- 저장소 내 `CONTRIBUTING.md`에 정의된 절차와 연락처를 우선 사용하세요.
+- 배포 매뉴얼은 `docs/kakao-cloud-git-source-build.md`를 참고하세요.
+- 라이선스는 저장소 내 `LICENSE`를 참조하세요.
+
+## 추가 문서
+
+| 문서 | 위치 |
+| --- | --- |
+| Kakao Cloud Git 소스 빌드 가이드 | `docs/kakao-cloud-git-source-build.md` |
+| 기여 정책 | `CONTRIBUTING.md` |
+| 라이선스 | `LICENSE` |
+
+---
+
+# meetup-coordinator-mcp (English)
+
+A Model Context Protocol (MCP) server that exposes meetup coordination workflows—scheduling, location, and participant data—as callable tools for AI agents. The same core ships over HTTP and stdio transports, so remote agents and local CLI agents share an identical tool surface.
+
+## At a glance
+
+A meetup coordination MCP server — dual HTTP/stdio transports with Zod-validated inputs and outputs.
+
+## Status
+
+| Item | Value |
+| --- | --- |
+| Package | `meetup-coordinator-mcp` |
+| Version | `0.1.0` |
+| Private | yes |
+| Runtime | Bun 1.3.x (Alpine) |
+| Language | TypeScript (`module`) |
+| Key deps | `@modelcontextprotocol/sdk` 1.29.0, `zod` 4.4.3 |
+| Transports | HTTP (`src/http-server.ts`), stdio (`src/stdio-server.ts`) |
+| Default port | `3000` (`ENV PORT` in Dockerfile) |
+| Container | `oven/bun:1.3.10-alpine` multi-stage |
+| Tests | `bun test` |
+| Lint/format | Biome |
+| Type check | `tsc --noEmit` |
+
+## Operator flow
+
+| Step | What happens |
+| --- | --- |
+| Boot | `src/config.ts` loads environment, instantiates the MCP server |
+| Exposure | HTTP listens on `PORT` (default `3000`); stdio uses the parent process streams |
+| Invoke | Agent calls a tool → `meetup-coordinator.ts` runs the domain logic |
+| Validate | `meetup-schemas.ts` enforces Zod contracts on inputs and outputs |
+| Gate | `bun run verify` runs lint + typecheck + test |
+
+## Entry points
+
+| Entry | Transport | Script |
+| --- | --- | --- |
+| `src/http-server.ts` | HTTP | `bun run dev`, `bun run start` |
+| `src/stdio-server.ts` | stdio | `bun run mcp:stdio` |
+
+Tool definitions and request/response contracts live in `src/mcp/meetup-schemas.ts` as the single source of truth.
+
+## Quickstart
 
 ```bash
-curl -i http://localhost:3000/health
-curl -i http://localhost:3000/mcp
+bun install
+bun run dev          # HTTP, hot reload
+bun run start        # HTTP, production mode
+bun run mcp:stdio    # stdio transport
+bun run verify       # lint + typecheck + test
 ```
 
-### 5. stdio 전송으로 실행 (선택) / stdio Transport
+Override the HTTP port with `PORT=<port>`. The container image exposes the HTTP transport on `3000` by default.
 
-```bash
-bun run mcp:stdio
-```
+## Scripts
 
----
-
-## Configuration
-
-서버는 다음 환경 변수를 사용합니다.
-
-| 변수 / Variable | 기본값 / Default | 출처 / Source | 설명 / Description |
-| --- | --- | --- | --- |
-| `PORT` | `3000` | `src/config.ts`, `Dockerfile` | HTTP 서버 포트. 컨테이너/로컬 공통. |
-| `NODE_ENV` | `production` (Docker) | `Dockerfile` | 컨테이너 런타임 모드. |
-
-`src/config.ts` 가 환경 변수를 읽고 검증합니다. 컨테이너 환경에서 값을
-변경하려면 `Dockerfile` 과 Kakao Cloud Git Source Build 설정을 함께
-수정해야 반영됩니다.
-
----
-
-## Commands Reference
-
-| 명령어 / Command | 설명 / Description |
+| Command | Action |
 | --- | --- |
-| `bun run dev` | HTTP 서버 핫 리로드 모드로 실행 (`src/http-server.ts`). |
-| `bun run start` | HTTP 서버 프로덕션 모드로 실행 (`src/http-server.ts`). |
-| `bun run mcp:stdio` | stdio 전송 MCP 서버 실행 (`src/stdio-server.ts`). |
-| `bun run typecheck` | `tsc --noEmit` 으로 타입 체크. |
-| `bun run lint` | Biome 으로 정적 분석. |
-| `bun run format` | Biome 으로 자동 포맷팅 (`biome check --write .`). |
-| `bun test` | `bun test` 로 단위/통합 테스트 실행. |
-| `bun run verify` | lint → typecheck → test 순차 실행. |
+| `bun run dev` | HTTP with Bun hot reload |
+| `bun run start` | HTTP, production |
+| `bun run mcp:stdio` | stdio transport |
+| `bun run typecheck` | `tsc --noEmit` |
+| `bun run lint` | Biome check |
+| `bun run format` | Biome format |
+| `bun test` | Run tests |
+| `bun run verify` | Lint + typecheck + test |
 
----
+## Development
 
-## Local Development
+- Bun only (no Node fallback).
+- Biome is the single source of code style.
+- Run `bun run verify` before opening a PR.
+- Keep the MCP SDK version pinned to `1.29.0` unless an upgrade is explicitly scoped.
 
-1. `bun install` 로 의존성을 설치합니다.
-2. `bun run dev` 로 핫 리로드를 시작합니다.
-3. MCP 인스펙터 또는 `curl` 로 `http://localhost:3000/mcp` 에 접근해
-   `tools/list`, `tools/call` 을 시험합니다.
-4. 코드 수정 후 `bun run verify` 로 정적 분석과 테스트 회귀를 확인합니다.
-5. 커밋 전에 `bun run format` 으로 Biome 포맷을 정리합니다.
+## Tests
 
-스타일 가이드, 커밋 메시지 규칙, PR 절차는 `CONTRIBUTING.md` 를 따릅니다.
+- Located in `tests/`; run with `bun test`.
+- Coverage areas: domain coordinator, config, HTTP MCP integration.
 
----
+## Further reading
 
-## Testing
-
-| 테스트 파일 / File | 대상 / Subject |
+| Document | Location |
 | --- | --- |
-| `tests/config.test.ts` | `src/config.ts` 의 환경 변수 파싱 및 검증. |
-| `tests/http-mcp.test.ts` | HTTP 전송의 부트스트랩과 라우팅. |
-| `tests/meetup-coordinator.test.ts` | 6개 도구의 입력/출력 스키마와 동작. |
-
-전체 실행:
-
-```bash
-bun test
-```
-
-권장: CI 또는 로컬 사전 검증 단계에서는 `bun run verify` 로 정적 분석과
-테스트를 함께 실행하세요.
-
----
-
-## PlayMCP Deployment & Submission
-
-### 배포 설정 / Deployment
-
-| 항목 / Item | 값 / Value |
-| --- | --- |
-| Git URL | `https://github.com/jclee941/jclee-bot` |
-| Branch / ref | `master` |
-| Dockerfile 경로 / Path | `Dockerfile` |
-| 컨테이너 포트 / Port | `3000` |
-| 헬스 체크 경로 / Health path | `/health` |
-| 상태 / Status | `Active` |
-| Endpoint 이름 / Name | `meetup-coordinator-mcp` |
-| Namespace | `kbm-u-4950521354` |
-| PlayMCP Endpoint | `https://meetup-coordinator-mcp.playmcp-endpoint.kakaocloud.io/mcp` |
-
-자세한 절차는 [`docs/kakao-cloud-git-source-build.md`](docs/kakao-cloud-git-source-build.md) 를
-참조하세요.
-
-### PlayMCP 호환성 / Compatibility
-
-- MCP 프로토콜 / Protocol: `@modelcontextprotocol/sdk` 1.29.0, 협상 범위
-  `2025-03-26` ~ `2025-11-25`
-- 전송 / Transport: Streamable HTTP at `/mcp`
-- 서버 모드 / Server mode: 요청별 무상태 / stateless per request
-- 인증 / Authentication: 없음 / none
-- 도구 수 / Tool count: 6
-- 도구명 규칙 / Naming: ASCII 영문자 + `_` 만 사용, `kakao` 부분 문자열 미포함
-- 도구 메타데이터 / Metadata: `name`, `description`, `inputSchema`,
-  `outputSchema`, 전체 `annotations` 노출
-- 도구 결과 / Results: 간결한 마크다운 텍스트 + 최소 구조화 페이로드
-
-### 등록 흐름 / Registration Flow
-
-1. PlayMCP in KC 에서 배포가 `Active` 가 되면 발급된 Endpoint URL 을 복사합니다.
-2. PlayMCP 개발자 콘솔에서 새 MCP 서버로 등록합니다.
-3. 먼저 임시 등록하고, 상세 미리보기에서 도구함에 추가한 뒤 PlayMCP AI 채팅으로 테스트합니다.
-4. 테스트가 끝난 뒤 심사 요청합니다.
-5. 승인 후 공개 상태를 전체 공개로 전환하고, 공개 MCP 상세 URL 을 공모전 접수 양식에 제출합니다.
-
-### 제출 정보 / Submission Fields
-
-| 필드 / Field | 값 / Value |
-| --- | --- |
-| 제작자 정보 / 팀프로필 이름 | 이재철2 |
-| 대표 이미지 / Representative image | [`assets/playmcp-registration-image.svg`](assets/playmcp-registration-image.svg) (참고 템플릿) |
-| 제출 양식 템플릿 / Submission template | [`assets/submission-representative-template.svg`](assets/submission-representative-template.svg) (참고 템플릿) |
-| 공개 MCP 상세 URL | PlayMCP 등록 후 발급된 전체 공개 URL |
-
-> 참고 이미지(`assets/*.svg`, `assets/*.png`) 는 제출 양식과 등록 화면을
-> 설명하기 위한 예시 자산이며, 실제 제출 시 본 서버의 공개 MCP 상세 URL
-> 을 함께 기재해야 합니다.
-
----
-
-## Maintainers
-
-| 역할 / Role | 담당 / Owner |
-| --- | --- |
-| 제작자 / Author | 이재철2 |
-| 배포 환경 / Deployment | Kakao Cloud (Git Source Build) |
-| 호출자 / Caller | PlayMCP |
-
-문의는 저장소 이슈 트래커를 사용하세요.
-
----
-
-## License
-
-본 저장소는 비공개(private) 패키지입니다. 자세한 내용은 [`LICENSE`](LICENSE)
-를 참조하세요.
-
----
-
-## Further Documentation
-
-- [`docs/kakao-cloud-git-source-build.md`](docs/kakao-cloud-git-source-build.md) —
-  Kakao Cloud Git Source Build 절차와 트러블슈팅.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — 기여 가이드 (스타일, 커밋, PR 절차).
-- [`LICENSE`](LICENSE) — 라이선스 전문.
-- [`assets/playmcp-registration-image.svg`](assets/playmcp-registration-image.svg) /
-  [`.png`](assets/playmcp-registration-image.png) — PlayMCP 등록 화면 참고 이미지.
-- [`assets/submission-representative-template.svg`](assets/submission-representative-template.svg) /
-  [`.png`](assets/submission-representative-template.png) — 공모전 제출 양식 참고 템플릿.
+| Kakao Cloud Git source build guide | `docs/kakao-cloud-git-source-build.md` |
+| Contributing policy | `CONTRIBUTING.md` |
+| License | `LICENSE` |
